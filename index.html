@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acupuncture Clinic Directory</title>
+<style>
+body{font-family:Arial, sans-serif;margin:0;background:#f4f6f8}
+header{background:#2c7be5;color:white;padding:20px;text-align:center}
+.container{max-width:1100px;margin:auto;padding:20px}
+.search{display:flex;gap:10px;margin-bottom:20px}
+.search input,.search select{flex:1;padding:12px;border-radius:8px;border:1px solid #ccc}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.card{background:white;border-radius:12px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.card h3{margin-top:0}
+button{background:#2c7be5;color:white;border:none;padding:10px 14px;border-radius:6px;cursor:pointer}
+button:hover{opacity:0.9}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);align-items:center;justify-content:center}
+.modal-content{background:white;padding:25px;border-radius:10px;width:340px}
+.modal-content h3{margin-top:0}
+input{width:100%;padding:10px;margin:8px 0;border:1px solid #ccc;border-radius:6px}
+.profile{display:none;background:white;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08);margin-bottom:20px}
+.map{margin-top:15px}
+.admin{margin-top:40px;background:white;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.admin h3{margin-top:0}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Acupuncture Clinic Finder</h1>
+<p>Browse trusted clinics and request an appointment</p>
+</header>
+
+<div class="container">
+
+<div class="profile" id="clinicProfile"></div>
+
+<div class="search">
+<input type="text" id="searchInput" placeholder="Search clinics...">
+<select id="locationFilter">
+<option value="">All Locations</option>
+<option>New York</option>
+<option>California</option>
+<option>Seattle</option>
+<option>Texas</option>
+<option>Chicago</option>
+<option>Boston</option>
+</select>
+</div>
+
+<div class="grid" id="clinicGrid"></div>
+
+<div class="admin">
+<h3>Admin Demo – Add Clinic</h3>
+<input id="adminName" placeholder="Clinic Name">
+<input id="adminLocation" placeholder="Location">
+<input id="adminDesc" placeholder="Specialty / Description">
+<button onclick="addClinic()">Add Clinic</button>
+</div>
+
+</div>
+
+<div class="modal" id="formModal">
+<div class="modal-content">
+<h3>Quick Appointment Request</h3>
+<form id="appointmentForm">
+<input type="text" placeholder="Full Name" required>
+<input type="email" placeholder="Email" required>
+<input type="tel" placeholder="Phone" required>
+<button type="submit">Continue to Clinic Booking</button>
+</form>
+</div>
+</div>
+
+<script>
+let redirectUrl="";
+
+const clinics=[
+{name:"Harmony Acupuncture",location:"New York",desc:"Pain relief & stress therapy",url:"https://exampleclinic.com/book"},
+{name:"Zen Balance Clinic",location:"California",desc:"Traditional Chinese medicine",url:"https://exampleclinic.com/book2"},
+{name:"Golden Needle Acupuncture",location:"Seattle",desc:"Sports injury therapy",url:"https://exampleclinic.com/book3"},
+{name:"Lotus Healing Center",location:"Texas",desc:"Holistic acupuncture care",url:"https://exampleclinic.com/book4"},
+{name:"Vital Qi Clinic",location:"Chicago",desc:"Energy balance treatments",url:"https://exampleclinic.com/book5"},
+{name:"East West Acupuncture",location:"Boston",desc:"Integrative acupuncture therapy",url:"https://exampleclinic.com/book6"}
+];
+
+function renderClinics(list){
+const grid=document.getElementById('clinicGrid');
+grid.innerHTML="";
+
+list.forEach((c,i)=>{
+const card=document.createElement('div');
+card.className='card';
+card.innerHTML=`
+<h3>${c.name}</h3>
+<p><b>Location:</b> ${c.location}</p>
+<p>${c.desc}</p>
+<button onclick="viewProfile(${i})">View Profile</button>
+<button onclick="openForm('${c.url}')">Request Appointment</button>
+`;
+
+grid.appendChild(card);
+});
+}
+
+function viewProfile(i){
+const c=clinics[i];
+const profile=document.getElementById('clinicProfile');
+
+profile.style.display='block';
+profile.innerHTML=`
+<h2>${c.name}</h2>
+<p><b>Location:</b> ${c.location}</p>
+<p>${c.desc}</p>
+<button onclick="openForm('${c.url}')">Request Appointment</button>
+
+<div class="map">
+<iframe width="100%" height="200" frameborder="0" style="border:0"
+src="https://maps.google.com/maps?q=${c.location}&output=embed"></iframe>
+</div>
+`;
+
+window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function openForm(url){
+redirectUrl=url;
+document.getElementById('formModal').style.display='flex';
+}
+
+document.getElementById('appointmentForm').addEventListener('submit',function(e){
+e.preventDefault();
+window.location.href=redirectUrl;
+});
+
+function addClinic(){
+const name=document.getElementById('adminName').value;
+const location=document.getElementById('adminLocation').value;
+const desc=document.getElementById('adminDesc').value;
+
+if(!name||!location)return;
+
+clinics.push({name,location,desc,url:'#'});
+renderClinics(clinics);
+}
+
+const searchInput=document.getElementById('searchInput');
+const locationFilter=document.getElementById('locationFilter');
+
+function filter(){
+const text=searchInput.value.toLowerCase();
+const loc=locationFilter.value;
+
+const filtered=clinics.filter(c=>{
+const matchText=c.name.toLowerCase().includes(text);
+const matchLoc=!loc||c.location===loc;
+return matchText && matchLoc;
+});
+
+renderClinics(filtered);
+}
+
+searchInput.addEventListener('keyup',filter);
+locationFilter.addEventListener('change',filter);
+
+renderClinics(clinics);
+</script>
+
+</body>
+</html>
